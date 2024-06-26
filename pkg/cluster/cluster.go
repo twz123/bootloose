@@ -257,6 +257,7 @@ func (c *Cluster) CreateMachine(machine *Machine, i int) error {
 	}
 
 	runArgs := c.createMachineRunArgs(machine, name, i)
+	log.Infof("FIXME creating %s: %v %s", name, runArgs, cmd)
 	_, err = docker.Create(machine.spec.Image,
 		runArgs,
 		[]string{cmd},
@@ -280,11 +281,13 @@ func (c *Cluster) CreateMachine(machine *Machine, i int) error {
 		}
 	}
 
+	log.Infof("FIXME starting: %s ...", name)
 	if err := docker.Start(name); err != nil {
 		return err
 	}
 
 	// Initial provisioning.
+	log.Infof("FIXME provisioning: %s ...", name)
 	if err := containerRunShell(name, initScript); err != nil {
 		return err
 	}
@@ -292,6 +295,7 @@ func (c *Cluster) CreateMachine(machine *Machine, i int) error {
 		return err
 	}
 
+	log.Infof("FIXME started: %s ...", name)
 	return nil
 }
 
