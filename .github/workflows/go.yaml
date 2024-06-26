@@ -25,32 +25,35 @@ on:
       - 'tests/*'
 
 jobs:
-  prepare:
-    runs-on: ubuntu-20.04
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-      hash: ${{ steps.set-hash.outputs.hash }}
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+  # prepare:
+  #   runs-on: ubuntu-20.04
+  #   outputs:
+  #     matrix: ${{ steps.set-matrix.outputs.matrix }}
+  #     hash: ${{ steps.set-hash.outputs.hash }}
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v4
 
-    - name: Populate list of images to build
-      id: set-matrix
-      run: |
-        IMAGES=($(find images -mindepth 1 -maxdepth 1 -type d -exec basename {} \;))
-        IMAGES_JSON="[$(printf '"%s",' "${IMAGES[@]}")]"
-        IMAGES_JSON="${IMAGES_JSON/,\]/]}"
-        echo "matrix={\"image\":$IMAGES_JSON}" >> $GITHUB_OUTPUT
+  #   - name: Populate list of images to build
+  #     id: set-matrix
+  #     run: |
+  #       IMAGES=($(find images -mindepth 1 -maxdepth 1 -type d -exec basename {} \;))
+  #       IMAGES_JSON="[$(printf '"%s",' "${IMAGES[@]}")]"
+  #       IMAGES_JSON="${IMAGES_JSON/,\]/]}"
+  #       echo "matrix={\"image\":$IMAGES_JSON}" >> $GITHUB_OUTPUT
 
-    - name: Calculate a hash for images/
-      id: set-hash
-      run: echo "hash=${{ hashFiles('images/**') }}" >> $GITHUB_OUTPUT
+  #   - name: Calculate a hash for images/
+  #     id: set-hash
+  #     run: echo "hash=${{ hashFiles('images/**') }}" >> $GITHUB_OUTPUT
 
   run_tests:
-    needs: prepare
+    # needs: prepare
     runs-on: ubuntu-20.04
     strategy:
-      matrix: ${{fromJson(needs.prepare.outputs.matrix)}}
+      # matrix: ${{fromJson(needs.prepare.outputs.matrix)}}
+      matrix:
+        image:
+        - ubuntu20.04
       fail-fast: false
 
     # env:
@@ -119,7 +122,7 @@ jobs:
 
     - name: Run tests (e2e)
       id: e2e
-      run: go test -timeout 15m -v ./tests -args -image=${{ matrix.image }}
+      run: DEBUG=1 go test -timeout 15m -v ./tests -args -image=${{ matrix.image }}
 
     - name: Docker logs after e2e failure
       if: always() && steps.e2e.outcome == 'failure'
